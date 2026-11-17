@@ -14,10 +14,10 @@ const details = async d => (await checkOwn(d)).map(p => p.detail).sort()
 const generic = name => ({ [`test/${name}/run.js`]: '', [`test/${name}/README.md`]: `# ${name}\n` })
 const unit = name => ({ ...generic(name), [`test/${name}/${name}.test.js`]: '' })
 const sets = (own = [], modules = true) => ({
-  'test/validate.json': { description: 'On its own.', tests: [...own, 'help', 'code', 'mrepo', 'package'] },
-  'test/validate-in-situ.json': { description: 'Where it is deployed.', tests: ['help-in-situ', 'mrepo-in-situ'] },
-  'test/full.json': { description: 'Every test.', tests: [...own, 'help', 'code', 'mrepo', 'package', ...(modules ? ['modules'] : [])] },
-  ...Object.assign({}, ...['help', 'code', 'mrepo', 'package', 'modules', 'help-in-situ', 'mrepo-in-situ'].map(generic))
+  'test/validate.json': { description: 'On its own.', tests: [...own, 'info', 'code', 'mrepo', 'package'] },
+  'test/validate-in-situ.json': { description: 'Where it is deployed.', tests: ['info-in-situ', 'mrepo-in-situ'] },
+  'test/full.json': { description: 'Every test.', tests: [...own, 'info', 'code', 'mrepo', 'package', ...(modules ? ['modules'] : [])] },
+  ...Object.assign({}, ...['info', 'code', 'mrepo', 'package', 'modules', 'info-in-situ', 'mrepo-in-situ'].map(generic))
 })
 const base = {
   'README.md': '# p\n',
@@ -31,7 +31,7 @@ const PROTOCOL = 'export const protocols = { p: { actions: { a: {} } }, q: { act
 test('a package well formed: a folder for every test, a test of its own, whatever its name: none', async (t) => {
   await within({ ...base, 'protocol.js': PROTOCOL, ...sets(['anything']), ...unit('anything') }, async d => {
     t.alike(await provides(d), { template: false, docs: false, protocols: ['p', 'q'], run: false, hooks: false, list: false, modules: true }, 'what it provides, read from its files')
-    t.alike(testFolders(d), ['anything', 'code', 'help', 'help-in-situ', 'modules', 'mrepo', 'mrepo-in-situ', 'package'], 'its test folders, the generic ones among them')
+    t.alike(testFolders(d), ['anything', 'code', 'info', 'info-in-situ', 'modules', 'mrepo', 'mrepo-in-situ', 'package'], 'its test folders, the generic ones among them')
     t.alike(ownTests(d), ['anything'], 'its tests of its own: the name is the package\'s')
     t.alike(await details(d), [])
   })
@@ -79,10 +79,10 @@ test('a package that breaks each: its files, its sets, a test that is not a unit
     'package.json': { name: 'p', type: 'commonjs' },
     'run.js': '',
     'modules/org/m/package.json': { name: 'm' },
-    'test/validate.json': { tests: ['help', 'code', 'gone', 'lone'] },
+    'test/validate.json': { tests: ['info', 'code', 'gone', 'lone'] },
     'test/full.json': { description: 'Every test.', tests: 'all' },
     'test/lone/notes.txt': 'x',
-    ...generic('help'),
+    ...generic('info'),
     ...generic('code')
   }, async d => {
     t.alike(await details(d), [

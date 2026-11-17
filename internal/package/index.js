@@ -7,12 +7,12 @@ import { pathToFileURL } from 'bare-url'
 
 // The generic tests, every package's, a folder each in its test/, the same
 // in every package (they come with the package template).
-export const GENERIC = ['help', 'code', 'mrepo', 'package', 'modules', 'help-in-situ', 'mrepo-in-situ']
+export const GENERIC = ['info', 'code', 'mrepo', 'package', 'modules', 'info-in-situ', 'mrepo-in-situ']
 // The sets every package has, and the generic tests each holds.
 export const SETS = {
-  validate: ['help', 'code', 'mrepo', 'package'],
-  'validate-in-situ': ['help-in-situ', 'mrepo-in-situ'],
-  full: ['help', 'code', 'mrepo', 'package']
+  validate: ['info', 'code', 'mrepo', 'package'],
+  'validate-in-situ': ['info-in-situ', 'mrepo-in-situ'],
+  full: ['info', 'code', 'mrepo', 'package']
 }
 
 // The package template: every other package is pinned to a commit of it.
