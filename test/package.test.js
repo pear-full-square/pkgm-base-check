@@ -52,9 +52,9 @@ test('it tests what it provides: protocols, a program, hooks, a list, and no tes
 test('every test has its folder: a generic test named in a set without one', async (t) => {
   const files = { ...base, ...sets(['x']), ...unit('x') }
   delete files['test/code/run.js']; delete files['test/code/README.md']
-  delete files['test/help/README.md']
+  delete files['test/info/README.md']
   await within(files, async d => {
-    t.alike(await details(d), ['test/help: no README.md', 'the code test: no folder (test/code/)'], 'no folder: said once, whatever the sets naming it; a folder without its README')
+    t.alike(await details(d), ['test/info: no README.md', 'the code test: no folder (test/code/)'], 'no folder: said once, whatever the sets naming it; a folder without its README')
   })
 })
 
