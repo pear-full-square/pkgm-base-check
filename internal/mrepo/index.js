@@ -45,8 +45,10 @@ export function checkStructure (pkg) {
     const walk = rel => readdirSync(join(hooksDir, rel)).sort().flatMap(n => statSync(join(hooksDir, rel, n)).isDirectory() ? walk(rel ? `${rel}/${n}` : n) : [rel ? `${rel}/${n}` : n])
     for (const f of walk('')) {
       const [transition, name, ...more] = f.split('/')
-      if (more.length || !name || !name.endsWith('.json')) { at(`mrepo/runtime/hooks/${f}: not a hook's place (hooks/<transition>/<name>.json)`); continue }
+      if (more.length || !name || !/\.(json|sh)$/.test(name)) { at(`mrepo/runtime/hooks/${f}: not a hook's place (hooks/<transition>/<name>.json, or <name>.sh: shell)`); continue }
       if (!TRANSITIONS.includes(transition)) { at(`mrepo/runtime/hooks/${f}: no transition ${transition} (${TRANSITIONS.join(', ')})`); continue }
+      // a shell hook: text, run by the runtime with sh; empty is none
+      if (name.endsWith('.sh')) { if (!readFileSync(join(hooksDir, f), 'utf8').trim()) at(`mrepo/runtime/hooks/${f}: an empty shell hook`); continue }
       let command = null
       // catch: not JSON: said where JSON is checked
       try { command = json(join(hooksDir, f)) } catch { continue } // (said where JSON is checked)

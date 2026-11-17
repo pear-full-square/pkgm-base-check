@@ -90,21 +90,24 @@ test('hooks: in their place, on a transition, each a command', (t) => {
     write(d, {
       ...good,
       'mrepo/runtime/hooks/boot/activate-p.json': ['protocol/activate', '.', 'p'],
-      'mrepo/runtime/hooks/initialise/extract.json': ['help/extract']
+      'mrepo/runtime/hooks/initialise/extract.json': ['help/extract'],
+      'mrepo/runtime/hooks/start/shell.sh': 'haicc . info/extract\n'
     })
-    t.alike(checkStructure(d), [], 'well formed: none')
+    t.alike(checkStructure(d), [], 'well formed: none, a shell hook among them')
     write(d, {
       'mrepo/runtime/hooks/reboot/x.json': ['a/b'],
       'mrepo/runtime/hooks/boot/deep/x.json': ['a/b'],
       'mrepo/runtime/hooks/start/named.json': { command: 'a/b' },
       'mrepo/runtime/hooks/stop/empty.json': [],
-      'mrepo/runtime/hooks/shutdown/odd.json': ['Not A Command']
+      'mrepo/runtime/hooks/shutdown/odd.json': ['Not A Command'],
+      'mrepo/runtime/hooks/stop/blank.sh': '  \n'
     })
     t.alike(checkStructure(d).map(p => p.detail).sort(), [
-      'mrepo/runtime/hooks/boot/deep/x.json: not a hook\'s place (hooks/<transition>/<name>.json)',
+      'mrepo/runtime/hooks/boot/deep/x.json: not a hook\'s place (hooks/<transition>/<name>.json, or <name>.sh: shell)',
       'mrepo/runtime/hooks/reboot/x.json: no transition reboot (boot, initialise, start, stop, shutdown)',
       'mrepo/runtime/hooks/shutdown/odd.json: not a command (its parts: <protocol>/<action> <URI> <arguments>)',
       'mrepo/runtime/hooks/start/named.json: not a command (its parts: <protocol>/<action> <URI> <arguments>)',
+      'mrepo/runtime/hooks/stop/blank.sh: an empty shell hook',
       'mrepo/runtime/hooks/stop/empty.json: not a command (its parts: <protocol>/<action> <URI> <arguments>)'
     ])
   } finally { rmSync(d, { recursive: true, force: true }) }
