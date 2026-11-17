@@ -30,8 +30,9 @@ test('a module that breaks each: structure, imports, references', (t) => {
   } finally { rmSync(d, { recursive: true, force: true }) }
   const e = mkdtempSync(join(tmpdir(), 'check-'))
   try {
-    write(e, { 'index.js': '// written from github.com/x/dev-env-3-y\nexport const a = 1\n' })
-    t.alike(checkPackage(e).map(p => [p.check, p.detail]), [['transient', 'dev-env-3-y']], 'a link to a development repository: transient')
+    const dev = ['dev', 'env', '3', 'y'].join('-') // (written so, or this file's own check would find it)
+    write(e, { 'index.js': `// written from github.com/x/${dev}\nexport const a = 1\n` })
+    t.alike(checkPackage(e).map(p => [p.check, p.detail]), [['transient', dev]], 'a link to a development repository: transient')
   } finally { rmSync(e, { recursive: true, force: true }) }
 })
 
