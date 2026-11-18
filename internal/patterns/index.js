@@ -3,7 +3,7 @@
 // `Pattern: <name>` line (README.md beside it). A pattern implemented
 // with no how-to is a problem: the implementation validation.
 import { readFileSync, readdirSync, statSync, existsSync } from 'bare-fs'
-import { join } from 'bare-path'
+import { join, basename, dirname } from 'bare-path'
 
 // The patterns, each what makes a package implement it.
 export const PATTERNS = {
@@ -17,7 +17,11 @@ export const PATTERNS = {
   hooks: 'mrepo/runtime/hooks/: commands run on a status transition',
   service: 'mrepo/runtime/service.json: a service-managed mrepo',
   'continuation-script': 'scripts/: commands to go on with after a deploy',
-  documents: '"documents" in its list: every package the sources offer documented, beyond the list'
+  documents: '"documents" in its list: every package the sources offer documented, beyond the list',
+  program: 'a hook that starts a placed package\'s program beside the mrepo (runtime/start)',
+  platform: 'an mrepo that deploys its components with the boot protocol and lays its own packages on top of them (a dual install)',
+  'element-set': 'a splectral package with UI elements only, each called by name in a component\'s renderer',
+  'splectral-component': 'a splectral list: an app on Splectral, its packages laid on top of an mrepo Splectral deployed'
 }
 
 const json = f => JSON.parse(readFileSync(f, 'utf8'))
@@ -38,6 +42,8 @@ export function patternsOf (pkg) {
   if (list) out.push('mrepo-definition')
   if (!docs && dirs(join(pkg, 'mrepo')).some(l => l !== 'packages' && l !== 'runtime' && existsSync(join(pkg, 'mrepo', l, 'layer.json')))) out.push('layer')
   if (has('mrepo/runtime/hooks')) out.push('hooks')
+  if (has('mrepo/runtime/hooks') && readdirSync(join(pkg, 'mrepo', 'runtime', 'hooks')).some(f => /^\s*runtime\/start\b/m.test(readFileSync(join(pkg, 'mrepo', 'runtime', 'hooks', f), 'utf8')))) out.push('program')
+  if (list && !protocol && !docs && basename(dirname(pkg)) === 'splectral') out.push('splectral-component')
   if (has('mrepo/runtime/service.json')) out.push('service')
   if (has('scripts')) out.push('continuation-script')
   if (list && json(join(pkg, 'mrepo', 'packages', 'layer.json')).documents !== undefined) out.push('documents')

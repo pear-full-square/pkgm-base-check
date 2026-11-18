@@ -11,7 +11,7 @@ const write = (d, files) => { for (const [p, v] of Object.entries(files)) { mkdi
 const tree = files => { const d = mkdtempSync(join(tmpdir(), 'patterns-')); write(d, files); return d }
 const HOWTO = p => `# a how-to\n\nDoes it.\n\nPattern: ${p}\n\n## Steps\n\n\`\`\`sh\n# why\nls\n\`\`\`\n`
 
-test('patterns: read from a package\'s files', (t) => {
+test('patterns: read from a package\'s files; a program started by a hook; a splectral component', (t) => {
   const made = []
   try {
     const protocol = tree({ 'package.json': {}, 'protocol.js': '', 'mrepo/links/layer.json': {}, 'mrepo/runtime/hooks/boot.haicc': 'a/b' }); made.push(protocol)
@@ -22,6 +22,9 @@ test('patterns: read from a package\'s files', (t) => {
     t.alike(patternsOf(component), ['package', 'component', 'mrepo-definition', 'service', 'continuation-script'], 'a component: its list, a service, a script')
     t.alike(patternsOf(docs), ['package', 'documentation-package'], 'a documentation package: its layers are pages, not a layer it brings')
     t.alike(patternsOf(app), ['package', 'app'])
+    // a splectral component, its hooks starting its renderer
+    const org = tree({ 'splectral/c/package.json': {}, 'splectral/c/mrepo/packages/layer.json': {}, 'splectral/c/mrepo/runtime/hooks/start.haicc': '# start\nruntime/start . a/b\n' }); made.push(org)
+    t.alike(patternsOf(join(org, 'splectral', 'c')), ['package', 'component', 'mrepo-definition', 'hooks', 'program', 'splectral-component'], 'a splectral component: a hook starting a program')
   } finally { for (const d of made) rmSync(d, { recursive: true, force: true }) }
 })
 
