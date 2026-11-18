@@ -17,4 +17,6 @@ package's files. A how-to names the pattern it covers in one line,
 
 ## Also exported
 
-`PATTERNS`: each pattern and what makes a package implement it.
+`PATTERNS`: each pattern and what makes a package implement it. Some are
+named by their how-tos only, not yet read from files: `platform`,
+`element-set`.
