@@ -24,6 +24,8 @@ test('patterns: read from a package\'s files; a program started by a hook; a pla
     t.alike(patternsOf(app), ['package', 'app'])
     const runnable = tree({ 'package.json': {}, 'run.js': '', 'howto/demo/README.md': '# demo\n', 'howto/demo/steps.haicc': '# step: x\n. crud/read .\n', 'howto/other/README.md': '# other\n' }); made.push(runnable)
     t.alike(patternsOf(runnable), ['package', 'app', 'howto'], 'a how-to with its script beside its page: a runnable how-to')
+    const solution = tree({ 'package.json': {}, 'mrepo/packages/layer.json': {}, 'scripts/solution.haicc': 'boot/deploy host haiccing/base-component-haicc\n' }); made.push(solution)
+    t.alike(patternsOf(solution), ['package', 'component', 'mrepo-definition', 'continuation-script', 'solution'], 'a solution: a list and its script, solution')
     // a platform declaring its organisation; a component of it, its hooks starting its renderer
     const org = tree({ 'haiccing/p/package.json': { platform: 'splectral' }, 'haiccing/p/protocol.js': '', 'splectral/c/package.json': {}, 'splectral/c/mrepo/packages/layer.json': {}, 'splectral/c/mrepo/runtime/hooks/start.haicc': '# start\nruntime/start . a/b\n' }); made.push(org)
     const platforms = platformsOf([join(org, 'haiccing', 'p'), join(org, 'splectral', 'c')])
