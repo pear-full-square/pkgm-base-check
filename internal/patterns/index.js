@@ -19,6 +19,7 @@ export const PATTERNS = {
   'continuation-script': 'scripts/: commands to go on with after a deploy',
   documents: '"documents" in its list: every package the sources offer documented, beyond the list',
   program: 'a hook that starts a placed package\'s program beside the mrepo (runtime/start)',
+  howto: 'howto/<name>/steps.haicc: a how-to runnable, its steps a script beside its page, run where it is installed',
   platform: '"platform": "<org>" in its package.json: an mrepo that deploys its components, its organisation\'s, with the boot protocol and lays their packages on top of them (a dual install)',
   '<org>-component': 'a list of a platform\'s organisation: a component on that platform, its packages laid on top of an mrepo the platform deployed'
 }
@@ -62,6 +63,7 @@ export function patternsOf (pkg, { platforms = [] } = {}) {
   if (has('mrepo/runtime/service.json')) out.push('service')
   if (has('scripts')) out.push('continuation-script')
   if (list && json(join(pkg, 'mrepo', 'packages', 'layer.json')).documents !== undefined) out.push('documents')
+  if (dirs(join(pkg, 'howto')).some(n => existsSync(join(pkg, 'howto', n, 'steps.haicc')))) out.push('howto')
   return out
 }
 
