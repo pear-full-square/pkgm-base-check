@@ -16,9 +16,9 @@ export const PATTERNS = {
   layer: 'a layer of its own in mrepo/, beyond the packages and the runtime',
   hooks: 'mrepo/runtime/hooks/: commands run on a status transition',
   service: 'mrepo/runtime/service.json: a service-managed mrepo',
-  'continuation-script': 'scripts/: commands to go on with after a deploy',
+  'continuation-script': 'scripts/: commands run where the haicc command points, by name (haicc/file)',
   schemas: 'schemas/: the AVRO schemas it carries, each named by its URI, registered when it is deployed',
-  solution: 'scripts/solution.haicc and a list: the mrepos an install is made of, deployed beside its own by its script, the continuation of every deploy of it',
+  commission: 'mrepo/runtime/hooks/commission.haicc or decommission.haicc: what the mrepo does once deployed (its components deployed, its service brought up) and before its teardown (what it deployed torn down)',
   documents: '"documents" in its list: every package the sources offer documented, beyond the list',
   program: 'a hook that starts a placed package\'s program beside the mrepo (runtime/start)',
   platform: '"platform": "<org>" in its package.json: an mrepo that deploys its components, its organisation\'s, with the boot protocol and lays their packages on top of them (a dual install)',
@@ -64,7 +64,7 @@ export function patternsOf (pkg, { platforms = [] } = {}) {
   if (has('mrepo/runtime/service.json')) out.push('service')
   if (has('scripts')) out.push('continuation-script')
   if (has('schemas')) out.push('schemas')
-  if (list && has('scripts/solution.haicc')) out.push('solution')
+  if (has('mrepo/runtime/hooks/commission.haicc') || has('mrepo/runtime/hooks/decommission.haicc')) out.push('commission')
   if (list && json(join(pkg, 'mrepo', 'packages', 'layer.json')).documents !== undefined) out.push('documents')
   return out
 }
