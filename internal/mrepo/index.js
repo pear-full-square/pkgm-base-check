@@ -7,6 +7,8 @@ import { isSegment, isHidden, HIDDEN } from 'mycelium-uri'
 import { isType, TYPES } from 'mycelium-xpath-physical'
 
 const MODES = ['atomic', 'replicated', 'non-atomic']
+// the layers that stream: the boxes and what is done, what only grows
+const STREAMING = ['inbox', 'outbox', 'request/done']
 // The status transitions a hook can hang on: boot (the runtime's), the rest the service's.
 const TRANSITIONS = ['boot', 'commission', 'initialise', 'start', 'stop', 'shutdown', 'decommission']
 const json = f => JSON.parse(readFileSync(f, 'utf8'))
@@ -71,6 +73,9 @@ export function checkStructure (pkg) {
     try { cfg = json(join(root, l, '.layer.json')) } catch (err) { at(`mrepo/${l}/.layer.json: ${err.message}`); continue }
     if (!MODES.includes(cfg.mode)) at(`mrepo/${l}/.layer.json: mode ${cfg.mode} (one of ${MODES.join(', ')})`)
     if (!cfg.description) at(`mrepo/${l}/.layer.json: no description`)
+    // explicit, always: a layer that streams (a box, request/done: what
+    // only grows) declares its structure; one that declares none is a folder
+    if (STREAMING.includes(l) && cfg.structure?.type !== 'offset-files') at(`mrepo/${l}/.layer.json: no structure declared (a streaming layer says it: "structure": { "type": "offset-files", "levels": [5, 6] }; without it the layer is a folder)`)
     // how it is stored, where it says: a structure type there is (the
     // physical side's: mycelium-xpath-physical), and what that type needs
     if (cfg.structure !== undefined) {

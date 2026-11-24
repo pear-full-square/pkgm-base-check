@@ -10,7 +10,10 @@ Checks the integrity of a package's mrepo side: its structure, its protocols, wh
   `runtime/hooks/<transition>.haicc`, a file a transition, each line a
   command; and that every name it lays in is a URI's name, and then
   data, or hidden, a name starting with a dot, and then one of those
-  there are (`mycelium-uri`, `HIDDEN`): the hidden-name rule, enforced.
+  there are (`mycelium-uri`, `HIDDEN`): the hidden-name rule, enforced. And
+  that a layer that streams (`inbox`, `outbox`, `request/done`)
+  declares its structure in its `.layer.json`: explicit, always; one
+  that declares none is a folder.
 - `checkProtocol(pkg)`: its `protocol.js`, imported; asynchronous. Among
   it, that every action is a documented method: the function mounted is
   the one `external/<action>/` of a carried module exports, its README
