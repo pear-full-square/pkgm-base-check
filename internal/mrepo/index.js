@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, statSync, lstatSync, existsSync } from 'bare
 import { join } from 'bare-path'
 import { pathToFileURL } from 'bare-url'
 import { isSegment, isHidden, HIDDEN } from 'mycelium-uri'
+import { isType, TYPES } from 'mycelium-xpath-physical'
 
 const MODES = ['atomic', 'replicated', 'non-atomic']
 // The status transitions a hook can hang on: boot (the runtime's), the rest the service's.
@@ -70,6 +71,17 @@ export function checkStructure (pkg) {
     try { cfg = json(join(root, l, '.layer.json')) } catch (err) { at(`mrepo/${l}/.layer.json: ${err.message}`); continue }
     if (!MODES.includes(cfg.mode)) at(`mrepo/${l}/.layer.json: mode ${cfg.mode} (one of ${MODES.join(', ')})`)
     if (!cfg.description) at(`mrepo/${l}/.layer.json: no description`)
+    // how it is stored, where it says: a structure type there is (the
+    // physical side's: mycelium-xpath-physical), and what that type needs
+    if (cfg.structure !== undefined) {
+      const st = cfg.structure
+      if (!isType(st?.type)) at(`mrepo/${l}/.layer.json: structure type ${st?.type} (one of ${Object.keys(TYPES).join(', ')})`)
+      else if (st.type === 'offset-files') {
+        const levels = st.levels ?? []
+        if (!(Array.isArray(levels) && levels.length && levels.every((n, i) => Number.isInteger(n) && n > (levels[i - 1] ?? 0) && n < 13))) at(`mrepo/${l}/.layer.json: structure levels (how many of an offset's 13 digits name each folder, growing: [5, 6])`)
+        if (st.batch !== undefined && !(Number.isInteger(st.batch) && st.batch > 0)) at(`mrepo/${l}/.layer.json: structure batch (a number of records)`)
+      }
+    }
     const files = (function all (rel) { return readdirSync(join(root, l, rel)).sort().flatMap(n => statSync(join(root, l, rel, n)).isDirectory() ? all(join(rel, n)) : [rel ? `${rel}/${n}` : n]) })('')
     for (const f of files) {
       if (f.endsWith('README.md')) at(`mrepo/${l}/${f}: a README inside a layer (it would be committed into it)`)

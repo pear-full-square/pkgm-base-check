@@ -111,6 +111,23 @@ test('hooks: in their place, on a transition, each a command', (t) => {
   } finally { rmSync(d, { recursive: true, force: true }) }
 })
 
+test('a layer\'s structure: a structure type there is, with what it needs', (t) => {
+  const said = structure => {
+    const d = mkdtempSync(join(tmpdir(), 'mrepo-'))
+    try {
+      write(d, { ...good, 'mrepo/inbox/.layer.json': { mode: 'non-atomic', description: 'In.', ...(structure === undefined ? {} : { structure }) } })
+      return checkStructure(d).map(p => p.detail)
+    } finally { rmSync(d, { recursive: true, force: true }) }
+  }
+  t.alike(said(undefined), [], 'none said: a plain tree')
+  t.alike(said({ type: 'tree' }), [])
+  t.alike(said({ type: 'offset-files', levels: [5, 6], batch: 50 }), [], 'a topic\'s records as files by their offsets')
+  t.alike(said({ type: 'parquet' }), ['mrepo/inbox/.layer.json: structure type parquet (one of tree, offset-files)'], 'a type there is none of')
+  t.alike(said({ type: 'offset-files', levels: [6, 5] }), ['mrepo/inbox/.layer.json: structure levels (how many of an offset\'s 13 digits name each folder, growing: [5, 6])'])
+  t.alike(said({ type: 'offset-files' }), ['mrepo/inbox/.layer.json: structure levels (how many of an offset\'s 13 digits name each folder, growing: [5, 6])'], 'its levels said')
+  t.alike(said({ type: 'offset-files', levels: [5, 6], batch: 0 }), ['mrepo/inbox/.layer.json: structure batch (a number of records)'])
+})
+
 test('the names a package lays into its layers: a URI\'s, or hidden and one of those there are', (t) => {
   const d = mkdtempSync(join(tmpdir(), 'mrepo-'))
   try {
