@@ -12,10 +12,10 @@ const good = {
   'package.json': { name: 'p', type: 'module', main: 'main.js' },
   'main.js': '',
   'mrepo/README.md': '# mrepo/\n',
-  'mrepo/main/layer.json': { mode: 'atomic', description: 'The data.' },
+  'mrepo/main/.layer.json': { mode: 'atomic', description: 'The data.' },
   'mrepo/runtime/service.json': { state: 'booted' },
-  'mrepo/packages/layer.json': { mode: 'replicated', description: 'The packages.', packages: ['org/p'] },
-  'mrepo/request/pending/default/layer.json': { mode: 'non-atomic', description: 'Waiting.' },
+  'mrepo/packages/.layer.json': { mode: 'replicated', description: 'The packages.', packages: ['org/p'] },
+  'mrepo/request/pending/default/.layer.json': { mode: 'non-atomic', description: 'Waiting.' },
   [`mrepo/request/pending/default/${KEY}.json`]: { topic: '/request/pending/default', key: KEY, value: { topic: null, key: KEY, value: { protocol: 'boot', action: 'deploy', uri: '/host' } } },
   'modules/org/m/external/a/index.js': 'export function a () {}\n',
   'modules/org/m/external/a/README.md': '# a\n\nDoes a.\n\n## Signature\n\n## Arguments\n\n## Returns\n\n## Errors\n',
@@ -42,9 +42,9 @@ test('a package that breaks each', async (t) => {
       ...good,
       'package.json': { name: 'p', type: 'module', main: 'gone.js' },
       'mrepo/stray.txt': 'x',
-      'mrepo/main/layer.json': { mode: 'sometimes' },
+      'mrepo/main/.layer.json': { mode: 'sometimes' },
       'mrepo/main/README.md': '# no\n',
-      'mrepo/packages/layer.json': { mode: 'replicated', description: 'The packages.', packages: ['nameonly'] },
+      'mrepo/packages/.layer.json': { mode: 'replicated', description: 'The packages.', packages: ['nameonly'] },
       [`mrepo/request/pending/default/${KEY}.json`]: { topic: '/elsewhere', key: 'other', value: { key: KEY, value: { protocol: 'boot' } } },
       'protocol.js': 'export const protocols = { p: { actions: { a: { description: "A." }, b: { uris: ["/"], description: "B." } } } }\nexport const actions = { p: { a () {}, c () {} } }\n',
       'modules/node_modules/x/package.json': { name: 'x', version: '2.0.0' },
@@ -79,8 +79,8 @@ test('an action is a documented method: its folder, the function it exports, wha
 test('a list that does not end with its own package', (t) => {
   const d = mkdtempSync(join(tmpdir(), 'mrepo-'))
   try {
-    write(d, { ...good, 'mrepo/packages/layer.json': { mode: 'replicated', description: 'The packages.', packages: ['org/p', 'org/docs'] } })
-    t.alike(checkStructure(d).map(p => p.detail), ['mrepo/packages/layer.json: its list ends with org/docs, not with the package itself (p)'], 'the last package of a list defines the mrepo: its own')
+    write(d, { ...good, 'mrepo/packages/.layer.json': { mode: 'replicated', description: 'The packages.', packages: ['org/p', 'org/docs'] } })
+    t.alike(checkStructure(d).map(p => p.detail), ['mrepo/packages/.layer.json: its list ends with org/docs, not with the package itself (p)'], 'the last package of a list defines the mrepo: its own')
   } finally { rmSync(d, { recursive: true, force: true }) }
 })
 
@@ -107,5 +107,19 @@ test('hooks: in their place, on a transition, each a command', (t) => {
       'mrepo/runtime/hooks/start/x.haicc: not a hook\'s place (hooks/<transition>.haicc, a file a transition)',
       'mrepo/runtime/hooks/stop.json: not a hook\'s place (hooks/<transition>.haicc, a file a transition)'
     ])
+  } finally { rmSync(d, { recursive: true, force: true }) }
+})
+
+test('the names a package lays into its layers: a URI\'s, or hidden and one of those there are', (t) => {
+  const d = mkdtempSync(join(tmpdir(), 'mrepo-'))
+  try {
+    write(d, { ...good, 'mrepo/main/swarms/.node.json': {}, 'mrepo/main/swarms/.shortcuts.json': [], 'mrepo/main/notes/a-1.json': {} })
+    t.alike(checkStructure(d), [], 'a layer\'s config, a node\'s document and shortcuts, data by a URI\'s name: none')
+    write(d, { 'mrepo/main/.settings.json': {}, 'mrepo/main/Notes/a.json': {}, 'mrepo/main/a_b.json': {}, 'mrepo/main/layer.json': {} })
+    t.alike(checkStructure(d).map(p => p.detail).sort(), [
+      'mrepo/main/.settings.json: a hidden name there is none of (.layer.json, .node.json, .shortcuts.json)',
+      'mrepo/main/Notes: not a URI\'s name (lowercase letters, digits, hyphens, its extensions; hidden: a name starting with a dot)',
+      'mrepo/main/a_b.json: not a URI\'s name (lowercase letters, digits, hyphens, its extensions; hidden: a name starting with a dot)'
+    ], 'a hidden name the rules do not know, an uppercase name, an underscore: each said; layer.json without its dot is data like any other')
   } finally { rmSync(d, { recursive: true, force: true }) }
 })
