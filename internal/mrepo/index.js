@@ -91,7 +91,8 @@ export function checkStructure (pkg) {
         try { r = json(join(root, l, f)) } catch { continue }
         const form = r?.value?.value
         if (r.topic !== `/${l}`) at(`mrepo/${l}/${f}: its envelope's topic ${r.topic} (/${l})`)
-        if (`${r.key}.json` !== f || r.value?.key !== r.key) at(`mrepo/${l}/${f}: its key (the file's name, the core's)`)
+        // a request's one identity: its offset, a number, its file's name (13 digits), its core's
+        if (!Number.isInteger(r.offset) || `${String(r.offset).padStart(13, '0')}.json` !== f || r.value?.offset !== r.offset) at(`mrepo/${l}/${f}: its offset (a number; the file's name, 13 digits; the core's)`)
         if (!form?.protocol || !form?.action || !form?.uri) at(`mrepo/${l}/${f}: its form (protocol, action, uri)`)
       }
     }

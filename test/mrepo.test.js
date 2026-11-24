@@ -7,7 +7,8 @@ import { tmpdir } from 'bare-os'
 import { checkStructure, checkProtocol, checkCarried, leaves, contributions } from '../index.js'
 
 function write (dir, files) { for (const [p, t] of Object.entries(files)) { mkdirSync(dirname(join(dir, p)), { recursive: true }); writeFileSync(join(dir, p), typeof t === 'string' ? t : JSON.stringify(t)) } }
-const KEY = '7b0c1f4e-2d3a-4c5b-9e6f-0a1b2c3d4e5f'
+const KEY = '0000000000001'
+const OFFSET = 1
 const good = {
   'package.json': { name: 'p', type: 'module', main: 'main.js' },
   'main.js': '',
@@ -16,7 +17,7 @@ const good = {
   'mrepo/runtime/service.json': { state: 'booted' },
   'mrepo/packages/.layer.json': { mode: 'replicated', description: 'The packages.', packages: ['org/p'] },
   'mrepo/request/pending/default/.layer.json': { mode: 'non-atomic', description: 'Waiting.' },
-  [`mrepo/request/pending/default/${KEY}.json`]: { topic: '/request/pending/default', key: KEY, value: { topic: null, key: KEY, value: { protocol: 'boot', action: 'deploy', uri: '/host' } } },
+  [`mrepo/request/pending/default/${KEY}.json`]: { topic: '/request/pending/default', offset: OFFSET, value: { topic: null, offset: OFFSET, value: { protocol: 'boot', action: 'deploy', uri: '/host' } } },
   'modules/org/m/external/a/index.js': 'export function a () {}\n',
   'modules/org/m/external/a/README.md': '# a\n\nDoes a.\n\n## Signature\n\n## Arguments\n\n## Returns\n\n## Errors\n',
   'protocol.js': 'import { a } from "./modules/org/m/external/a/index.js"\nexport const protocols = { p: { package: "org/p", description: "P.", actions: { a: { uris: ["/"], args: ["x"], description: "A." } } } }\nexport const actions = { p: { a } }\n',
@@ -45,14 +46,14 @@ test('a package that breaks each', async (t) => {
       'mrepo/main/.layer.json': { mode: 'sometimes' },
       'mrepo/main/README.md': '# no\n',
       'mrepo/packages/.layer.json': { mode: 'replicated', description: 'The packages.', packages: ['nameonly'] },
-      [`mrepo/request/pending/default/${KEY}.json`]: { topic: '/elsewhere', key: 'other', value: { key: KEY, value: { protocol: 'boot' } } },
+      [`mrepo/request/pending/default/${KEY}.json`]: { topic: '/elsewhere', offset: 2, value: { offset: OFFSET, value: { protocol: 'boot' } } },
       'protocol.js': 'export const protocols = { p: { actions: { a: { description: "A." }, b: { uris: ["/"], description: "B." } } } }\nexport const actions = { p: { a () {}, c () {} } }\n',
       'modules/node_modules/x/package.json': { name: 'x', version: '2.0.0' },
       'modules/node_modules/y/package.json': { name: 'y', version: '1.0.0' },
       'modules/node_modules/z/package.json': { name: 'z', version: '1.0.0' }
     })
     const s = checkStructure(d).map(p => p.detail)
-    t.is(s.length, 8, `structure: a stray file, a mode, no description, a README in a layer, the packages list, a preloaded request's topic, key and form\n${s.join('\n')}`)
+    t.is(s.length, 8, `structure: a stray file, a mode, no description, a README in a layer, the packages list, a preloaded request's topic, offset and form\n${s.join('\n')}`)
     const p = (await checkProtocol(d)).map(p => p.detail).sort()
     t.alike(p, ['p a: no uris', 'p a: the function mounted is not its method\'s (external/a/ in org/m)', 'p b: configured, no function', 'p c: a function, not configured', 'p: no description', 'p: no package'].sort(), 'protocol')
     t.alike(checkCarried(d).map(p => p.detail).sort(), ['package.json: main gone.js not there', 'x: 2.0.0 carried, 1.0.0 recorded', 'y: omitted, yet carried (1.0.0)', 'z: carried, not recorded'].sort(), 'carried')
@@ -117,7 +118,7 @@ test('the names a package lays into its layers: a URI\'s, or hidden and one of t
     t.alike(checkStructure(d), [], 'a layer\'s config, a node\'s document and shortcuts, data by a URI\'s name: none')
     write(d, { 'mrepo/main/.settings.json': {}, 'mrepo/main/Notes/a.json': {}, 'mrepo/main/a_b.json': {}, 'mrepo/main/layer.json': {} })
     t.alike(checkStructure(d).map(p => p.detail).sort(), [
-      'mrepo/main/.settings.json: a hidden name there is none of (.layer.json, .node.json, .shortcuts.json)',
+      'mrepo/main/.settings.json: a hidden name there is none of (.layer.json, .node.json, .shortcuts.json, .lock, .pointer.json)',
       'mrepo/main/Notes: not a URI\'s name (lowercase letters, digits, hyphens, its extensions; hidden: a name starting with a dot)',
       'mrepo/main/a_b.json: not a URI\'s name (lowercase letters, digits, hyphens, its extensions; hidden: a name starting with a dot)'
     ], 'a hidden name the rules do not know, an uppercase name, an underscore: each said; layer.json without its dot is data like any other')
