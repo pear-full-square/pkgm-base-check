@@ -9,7 +9,7 @@ import { join, basename, dirname } from 'bare-path'
 export const PATTERNS = {
   package: 'every package',
   'protocol-package': 'a protocol.js: a protocol, its config and its actions',
-  component: 'a list of packages and no protocol: several packages deployed together',
+  component: 'a list of packages: several packages deployed together as one mrepo, standalone; a protocol of its own allowed (one, as any package)',
   'documentation-package': '"docs": true: pages only, no structure brought',
   app: 'a run.js and neither a protocol nor a list: a program run from its bundle',
   'mrepo-definition': 'a list, mrepo/packages/.layer.json: the packages an mrepo is made of',
@@ -54,13 +54,13 @@ export function patternsOf (pkg, { platforms = [] } = {}) {
   const out = ['package']
   if (protocol) out.push('protocol-package')
   if (docs) out.push('documentation-package')
-  if (list && !protocol && !docs) out.push('component')
+  if (list && !docs) out.push('component')
   if (has('run.js') && !protocol && !list) out.push('app')
   if (list) out.push('mrepo-definition')
   if (!docs && dirs(join(pkg, 'mrepo')).some(l => l !== 'packages' && l !== 'runtime' && existsSync(join(pkg, 'mrepo', l, '.layer.json')))) out.push('layer')
   if (has('mrepo/runtime/hooks')) out.push('hooks')
   if (has('mrepo/runtime/hooks') && readdirSync(join(pkg, 'mrepo', 'runtime', 'hooks')).some(f => /^\s*runtime\/start\b/m.test(readFileSync(join(pkg, 'mrepo', 'runtime', 'hooks', f), 'utf8')))) out.push('program')
-  if (list && !protocol && !docs && platforms.includes(basename(dirname(pkg)))) out.push(componentPattern(basename(dirname(pkg))))
+  if (list && !docs && platforms.includes(basename(dirname(pkg)))) out.push(componentPattern(basename(dirname(pkg))))
   if (typeof pj.platform === 'string') out.push('platform')
   if (has('mrepo/runtime/service.json')) out.push('service')
   if (has('scripts')) out.push('continuation-script')
