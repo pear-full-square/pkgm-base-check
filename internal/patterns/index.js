@@ -12,13 +12,14 @@ export const PATTERNS = {
   component: 'a list of packages and no protocol: several packages deployed together',
   'documentation-package': '"docs": true: pages only, no structure brought',
   app: 'a run.js and neither a protocol nor a list: a program run from its bundle',
-  'mrepo-definition': 'a list, mrepo/packages/layer.json: the packages an mrepo is made of',
+  'mrepo-definition': 'a list, mrepo/packages/.layer.json: the packages an mrepo is made of',
   layer: 'a layer of its own in mrepo/, beyond the packages and the runtime',
   hooks: 'mrepo/runtime/hooks/: commands run on a status transition',
   service: 'mrepo/runtime/service.json: a service-managed mrepo',
-  'continuation-script': 'scripts/: commands to go on with after a deploy',
-  solution: 'scripts/solution.haicc and a list: the mrepos an install is made of, deployed beside its own by its script, the continuation of every deploy of it',
-  documents: '"documents" in its list: every package the sources offer documented, beyond the list',
+  'continuation-script': 'scripts/: commands run where the haicc command points, by name (haicc/file)',
+  schemas: 'schemas/: the AVRO schemas it carries, each named by its URI, registered when it is deployed',
+  commission: 'mrepo/runtime/hooks/commission.haicc or decommission.haicc: what the mrepo does once deployed (its components deployed, its service brought up) and before its teardown (what it deployed torn down)',
+  documents: '"documents": "store" in its list: every package in the install\'s store documented, beyond the list',
   program: 'a hook that starts a placed package\'s program beside the mrepo (runtime/start)',
   howto: 'howto/<name>/steps.haicc: a how-to runnable, its steps a script beside its page, run where it is installed',
   platform: '"platform": "<org>" in its package.json: an mrepo that deploys its components, its organisation\'s, with the boot protocol and lays their packages on top of them (a dual install)',
@@ -49,22 +50,23 @@ export function patternsOf (pkg, { platforms = [] } = {}) {
   const has = p => existsSync(join(pkg, ...p.split('/')))
   const docs = pj.docs === true
   const protocol = has('protocol.js')
-  const list = has('mrepo/packages/layer.json')
+  const list = has('mrepo/packages/.layer.json')
   const out = ['package']
   if (protocol) out.push('protocol-package')
   if (docs) out.push('documentation-package')
   if (list && !protocol && !docs) out.push('component')
   if (has('run.js') && !protocol && !list) out.push('app')
   if (list) out.push('mrepo-definition')
-  if (!docs && dirs(join(pkg, 'mrepo')).some(l => l !== 'packages' && l !== 'runtime' && existsSync(join(pkg, 'mrepo', l, 'layer.json')))) out.push('layer')
+  if (!docs && dirs(join(pkg, 'mrepo')).some(l => l !== 'packages' && l !== 'runtime' && existsSync(join(pkg, 'mrepo', l, '.layer.json')))) out.push('layer')
   if (has('mrepo/runtime/hooks')) out.push('hooks')
   if (has('mrepo/runtime/hooks') && readdirSync(join(pkg, 'mrepo', 'runtime', 'hooks')).some(f => /^\s*runtime\/start\b/m.test(readFileSync(join(pkg, 'mrepo', 'runtime', 'hooks', f), 'utf8')))) out.push('program')
   if (list && !protocol && !docs && platforms.includes(basename(dirname(pkg)))) out.push(componentPattern(basename(dirname(pkg))))
   if (typeof pj.platform === 'string') out.push('platform')
   if (has('mrepo/runtime/service.json')) out.push('service')
   if (has('scripts')) out.push('continuation-script')
-  if (list && has('scripts/solution.haicc')) out.push('solution')
-  if (list && json(join(pkg, 'mrepo', 'packages', 'layer.json')).documents !== undefined) out.push('documents')
+  if (has('schemas')) out.push('schemas')
+  if (has('mrepo/runtime/hooks/commission.haicc') || has('mrepo/runtime/hooks/decommission.haicc')) out.push('commission')
+  if (list && json(join(pkg, 'mrepo', 'packages', '.layer.json')).documents !== undefined) out.push('documents')
   if (dirs(join(pkg, 'howto')).some(n => existsSync(join(pkg, 'howto', n, 'steps.haicc')))) out.push('howto')
   return out
 }
