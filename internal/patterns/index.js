@@ -18,6 +18,7 @@ export const PATTERNS = {
   service: 'mrepo/runtime/service.json: a service-managed mrepo',
   'continuation-script': 'scripts/: commands run where the haicc command points, by name (haicc/file)',
   schemas: 'schemas/: the AVRO schemas it carries, each named by its URI, registered when it is deployed',
+  types: 'types/: the core types it declares, an AVRO schema each (<name>.avsc), named by its URI',
   commission: 'mrepo/runtime/hooks/commission.haicc or decommission.haicc: what the mrepo does once deployed (its components deployed, its service brought up) and before its teardown (what it deployed torn down)',
   documents: '"documents": "store" in its list: every package in the install\'s store documented, beyond the list',
   program: 'a hook that starts a placed package\'s program beside the mrepo (runtime/start)',
@@ -65,6 +66,7 @@ export function patternsOf (pkg, { platforms = [] } = {}) {
   if (has('mrepo/runtime/service.json')) out.push('service')
   if (has('scripts')) out.push('continuation-script')
   if (has('schemas')) out.push('schemas')
+  if (has('types')) out.push('types')
   if (has('mrepo/runtime/hooks/commission.haicc') || has('mrepo/runtime/hooks/decommission.haicc')) out.push('commission')
   if (list && json(join(pkg, 'mrepo', 'packages', '.layer.json')).documents !== undefined) out.push('documents')
   if (dirs(join(pkg, 'howto')).some(n => existsSync(join(pkg, 'howto', n, 'steps.haicc')))) out.push('howto')
