@@ -48,8 +48,9 @@ export function checkStructure (pkg) {
   // types come from the schema registry, never from a package's structure
   if (existsSync(join(root, 'avro'))) {
     // catch: no package.json that reads: no name (said by the package check)
-    const name = (() => { try { return json(join(pkg, 'package.json')).name } catch { return null } })()
-    if (name !== AVRO_BRINGER) at(`mrepo/avro: a package lays nothing into the avro layer (the ${AVRO_BRINGER} alone does, its essential types; any other type comes from the schema registry)`)
+    const { name = null, docs = false } = (() => { try { return json(join(pkg, 'package.json')) } catch { return {} } })()
+    // (a documentation package brings no structure at deploy: its mrepo/ is pages, the layer's among them)
+    if (name !== AVRO_BRINGER && docs !== true) at(`mrepo/avro: a package lays nothing into the avro layer (the ${AVRO_BRINGER} alone does, its essential types; any other type comes from the schema registry)`)
   }
   // every name it lays in: a URI's name, and then data; or hidden, a name
   // starting with a dot, and then one of those there are (a layer's

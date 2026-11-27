@@ -167,6 +167,8 @@ test('the avro layer: laid in by the runtime package alone; any other package br
     t.alike(checkStructure(d), [], 'the runtime package: its avro layer, its essential types in it: none')
     write(d, { 'package.json': { name: 'p', type: 'module', main: 'main.js' }, 'mrepo/packages/.layer.json': { mode: 'replicated', description: 'The packages.', packages: ['org/p'] } })
     t.alike(checkStructure(d).map(p => p.detail), ['mrepo/avro: a package lays nothing into the avro layer (the base-package-runtime alone does, its essential types; any other type comes from the schema registry)'], 'another package bringing the layer: said')
+    write(d, { 'package.json': { name: 'p', type: 'module', main: 'main.js', docs: true } })
+    t.absent(checkStructure(d).some(p => p.detail.startsWith('mrepo/avro:')), 'a documentation package: its mrepo/ is pages, the layer\'s page among them: not said')
   } finally { rmSync(d, { recursive: true, force: true }) }
   const c = mkdtempSync(join(tmpdir(), 'mrepo-'))
   try {
